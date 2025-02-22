@@ -2,7 +2,10 @@ require.config( {
   baseUrl: "./js",
   paths: {
     vendor: "../vendor",
-    jquery: "../vendor/jquery/jquery-2.2.0.min"
+    jquery: "../vendor/jquery/jquery-2.2.0.min",
+    jszip: "../vendor/jszip/jszip.min",
+    filesaver: "../vendor/FileSaver.js/FileSaver-2.0.0.min"
+
   },
   packages: [ {
     name: "codemirror",

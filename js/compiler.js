@@ -7,7 +7,9 @@ define( [
   "compiler/func",
   "compiler/native",
   "compiler/cserror",
-  "utils/commandtools"
+  "utils/commandtools",
+  "jszip",
+  "filesaver"
 ], function(
   Parser,
   Context,
@@ -17,7 +19,9 @@ define( [
   Func,
   Native,
   CSError,
-  CT
+  CT,
+  jszip,
+  filesaver
 ) {
 
   var numRe = /^(?:~?[\+-]?(?:\.\d+|\d+\.?\d*)|~)$/,
@@ -958,10 +962,17 @@ define( [
       throw new CSError( "NO_COMMAND" );
     }
 
-    // FIXME save all funcs to a ZIP.
+    var zip = new jszip();
     funcs.forEach((commands, path) => {
-      console.log(`###${path}###\n${commands.join("\n")}\n\n`);
+      zip.file(path + ".mcfunction", commands.join("\n"));
     });
+    zip.generateAsync({type:"blob"})
+        .then(function(content) {
+          saveAs(content, "functions.zip");
+        }, function(err) {
+          alert("Error generating zip!");
+          console.error(err);
+        });
 
     if( this.options.outputMcfunction ) {
       return commands.join("\n")
