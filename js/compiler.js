@@ -958,6 +958,11 @@ define( [
       throw new CSError( "NO_COMMAND" );
     }
 
+    // FIXME save all funcs to a ZIP.
+    funcs.forEach((commands, path) => {
+      console.log(`###${path}###\n${commands.join("\n")}\n\n`);
+    });
+
     if( this.options.outputMcfunction ) {
       return commands.join("\n")
     }
@@ -991,11 +996,6 @@ define( [
         } ]
       } ]
     };
-
-    // FIXME save all funcs to a ZIP.
-    funcs.forEach((commands, path) => {
-      console.log(`###${path}###\n${commands.join("\n")}\n\n`);
-    });
 
     var summonCommand = "summon " + entityNames["falling_block"] + " ~ ~.6 ~ " + CT.serialize( root );
 
