@@ -4,6 +4,7 @@ define( [
   "compiler/scope",
   "compiler/output",
   "compiler/chain",
+  "compiler/func",
   "compiler/native",
   "compiler/cserror",
   "utils/commandtools"
@@ -13,6 +14,7 @@ define( [
   Scope,
   Output,
   Chain,
+  Func,
   Native,
   CSError,
   CT
@@ -176,6 +178,12 @@ define( [
     return coordinates;
   };
 
+  Compiler.prototype.parsePath = function( parser, context, untilTypes ) {
+    var path = this.parseUntil( parser, context, untilTypes );
+
+    return path;
+  };
+
   Compiler.prototype.parseFactor = function( parser, context ) {
     var result;
 
@@ -317,6 +325,29 @@ define( [
     this.parseSection( parser, chainContext );
 
     return chain;
+  };
+
+  Compiler.prototype.parseFunc = function( parser, context ) {
+    var funcToken = parser.eat( "keyword", "func" );
+    parser.eat( "spaces" );
+
+    var path = this.parsePath( parser, context, [ ":", "eol" ] );
+
+    parser.eat( ":" );
+    parser.eat( "eol" );
+
+    var func = new Func( path ),
+        funcContext = context.push(),
+        funcScope = context.get( "scope" ).push();
+
+    funcContext.set( "mode", "commands" );
+    funcContext.set( "indentation", this.requireIndentation( parser, context ) );
+    funcContext.set( "scope", funcScope );
+    funcContext.set( "output", func );
+
+    this.parseSection( parser, funcContext );
+
+    return func;
   };
 
   Compiler.prototype.parseInclude = function( parser, context ) {
@@ -782,6 +813,12 @@ define( [
           continue;
         }
 
+        if( token.type === "keyword" && token.value === "func" ) {
+          var func = this.parseFunc( parser, context );
+          output.push( func );
+          continue;
+        }
+
         if( token.type === "keyword" && token.value === "include" ) {
           this.parseInclude( parser, context );
           continue;
@@ -901,19 +938,23 @@ define( [
   Compiler.prototype.compileCommands = function( input ) {
     var entityNames = CT.entityNames[ this.options.useOldEntityNames === false ? "current" : "old" ],
       commands = [],
+      funcs = new Map(),
       minecarts = [],
       i, l;
 
     for( i = 0, l = input.length ; i < l ; i++ ) {
       if( typeof input[i] === "string" ) {
         commands.push( input[i] );
+      } else if (input[i].isFunc) {
+        var func = input[i];
+        funcs.set(func.path, func.commands);
       }
       else {
         commands = commands.concat( this.compileChain( input[i] ) );
       }
     }
 
-    if( commands.length === 0 ) {
+    if( commands.length === 0 && funcs.size === 0 ) {
       throw new CSError( "NO_COMMAND" );
     }
 
@@ -950,6 +991,11 @@ define( [
         } ]
       } ]
     };
+
+    // FIXME save all funcs to a ZIP.
+    funcs.forEach((commands, path) => {
+      console.log(`###${path}###\n${commands.join("\n")}\n\n`);
+    });
 
     var summonCommand = "summon " + entityNames["falling_block"] + " ~ ~.6 ~ " + CT.serialize( root );
 

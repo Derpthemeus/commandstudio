@@ -6,7 +6,7 @@ define( [ "codemirror", "codemirror/addon/mode/simple" ], function( CodeMirror )
       { regex: /`.?/, token: "hr" },
 
       // Commander specific
-      { regex: /(?:chain|include)\b/, token: "header", sol: true },
+      { regex: /(?:chain|func|include)\b/, token: "header", sol: true },
       { regex: /(\s*)(default|def|invert|marker|var|void)\b/, token: [ "quote", "header" ], sol: true },
       { regex: /(\s+)([01irc\?!]+)(:)/, token: [ null, "quote", "operator" ], sol: true },
 

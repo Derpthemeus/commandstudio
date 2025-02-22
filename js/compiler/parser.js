@@ -30,7 +30,7 @@ define( [
 
     { name: "spaces", pattern: /[ \t]+/ },
     { name: "number", pattern: /\d+/ },
-    { name: "keyword", pattern: /(?:chain|default|def|include|invert|marker|var|void)\b/ },
+    { name: "keyword", pattern: /(?:chain|default|def|include|invert|marker|var|void|func)\b/ },
     { name: "def", pattern: /\^\w+/ },
     { name: "var", pattern: /\$\w+/ }
   ];
