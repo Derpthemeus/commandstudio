@@ -962,17 +962,19 @@ define( [
       throw new CSError( "NO_COMMAND" );
     }
 
-    var zip = new jszip();
-    funcs.forEach((commands, path) => {
-      zip.file(path + ".mcfunction", commands.join("\n"));
-    });
-    zip.generateAsync({type:"blob"})
-        .then(function(content) {
-          saveAs(content, "functions.zip");
-        }, function(err) {
-          alert("Error generating zip!");
-          console.error(err);
-        });
+    if ( funcs.size > 0 ) {
+      var zip = new jszip();
+      funcs.forEach((commands, path) => {
+        zip.file(path + ".mcfunction", commands.join("\n"));
+      });
+      zip.generateAsync({type:"blob"})
+          .then(function(content) {
+            saveAs(content, "functions.zip");
+          }, function(err) {
+            alert("Error generating zip!");
+            console.error(err);
+          });
+    }
 
     if( this.options.outputMcfunction ) {
       return commands.join("\n")
