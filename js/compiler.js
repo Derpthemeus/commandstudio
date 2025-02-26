@@ -338,7 +338,7 @@ define( [
     var path = this.parsePath( parser, context, [ ":", "eol" ] );
 
     parser.eat( ":" );
-    parser.eat( "eol" );
+    parser.skip( "eol" );
 
     var func = new Func( path ),
         funcContext = context.push(),
