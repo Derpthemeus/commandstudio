@@ -1,4 +1,4 @@
-define( [ "ui", "compiler" ], function( UI, Compiler ) {
+define( [ "ui", "compiler", "filesaver" ], function( UI, Compiler, filesaver ) {
 
   function compareVersions( v1, v2 ) {
     var v1parts = v1.split( "." ),
@@ -65,15 +65,8 @@ define( [ "ui", "compiler" ], function( UI, Compiler ) {
       var project = {
           version: "0.1",
           files: ui.getFiles()
-        },
-        link = "data:application/json," + encodeURI( JSON.stringify( project ) );
-
-      ui.popin.show( "download", {
-        "title": "Export project",
-        "text": "Download your project",
-        "link:href": link,
-        "link:download": "project.json"
-      } );
+        };
+      saveAs(new Blob([JSON.stringify(project)], {type: "text/json;charset=utf-8"}), "project.json");
     } );
 
     ui.events.on( "toolbar.project-new", function() {
