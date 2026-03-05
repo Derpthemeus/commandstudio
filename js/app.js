@@ -66,7 +66,7 @@ define( [ "ui", "compiler", "filesaver", "jsyaml" ], function( UI, Compiler, fil
           version: "0.1",
           files: ui.getFiles()
         };
-      saveAs(new Blob([JSON.stringify(project)], {type: "text/json;charset=utf-8"}), "project.json");
+      saveAs(new Blob([jsyaml.dump(project)], {type: "text/yaml;charset=utf-8"}), "project.yaml");
     } );
 
     ui.events.on( "toolbar.project-new", function() {
