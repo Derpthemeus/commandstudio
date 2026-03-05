@@ -1,4 +1,4 @@
-define( [ "ui", "compiler", "filesaver" ], function( UI, Compiler, filesaver ) {
+define( [ "ui", "compiler", "filesaver", "jsyaml" ], function( UI, Compiler, filesaver, jsyaml ) {
 
   function compareVersions( v1, v2 ) {
     var v1parts = v1.split( "." ),
@@ -89,12 +89,12 @@ define( [ "ui", "compiler", "filesaver" ], function( UI, Compiler, filesaver ) {
               fr = new FileReader();
             fr.onloadend = function( event ) {
               try {
-                var project = JSON.parse( event.target.result );
+                var project = jsyaml.load( event.target.result );
                 if( project.version === "0.1" && typeof project.files === "object" ) {
                   ui.setFiles( project.files );
                 }
                 else {
-                  throw "Invalid JSON project format";
+                  throw "Invalid YAML project format";
                 }
               }
               catch( e ) {
@@ -160,7 +160,7 @@ define( [ "ui", "compiler", "filesaver" ], function( UI, Compiler, filesaver ) {
   App.prototype.load = function( key ) {
     var data = window.localStorage.getItem( key );
     if( data !== null ) {
-      return JSON.parse( data );
+      return jsyaml.load( data );
     }
     return null;
   };

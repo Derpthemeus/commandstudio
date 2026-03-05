@@ -4,7 +4,8 @@ require.config( {
     vendor: "../vendor",
     jquery: "../vendor/jquery/jquery-2.2.0.min",
     jszip: "../vendor/jszip/jszip.min",
-    filesaver: "../vendor/FileSaver.js/FileSaver-2.0.0.min"
+    filesaver: "../vendor/FileSaver.js/FileSaver-2.0.0.min",
+    jsyaml: "../vendor/js-yaml/js-yaml.min"
 
   },
   packages: [ {
