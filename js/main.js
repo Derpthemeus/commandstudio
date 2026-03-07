@@ -21,7 +21,10 @@ require( [
   "editor/commander-mode",
   "editor/commander-hint",
   "codemirror/keymap/sublime",
-  "codemirror/addon/edit/matchbrackets"
+  "codemirror/addon/edit/matchbrackets",
+  "codemirror/addon/dialog/dialog",
+  "codemirror/addon/search/searchcursor",
+  "codemirror/addon/search/search"
 ], function ( App, domReady ) {
   domReady( function () {
     window.app = new App;
