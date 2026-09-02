@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var fs = require( "fs" );
+var path = require( "path" );
 var yaml = require( "js-yaml" );
 var Compiler = require( "../js/compiler" );
 
@@ -16,9 +17,10 @@ function usage() {
     "Usage: commandstudio-compile <project.yaml> <entryFile> [options]",
     "",
     "Options:",
-    "  -o, --out <path>    Write the compiled output to a file instead of stdout",
-    "  --funcs-out <path>  Write generated function files as a zip to this path (default: functions.zip)",
-    "  -h, --help          Show this message"
+    "  -o, --out <path>       Write the compiled output to a file instead of stdout",
+    "  --funcs-out <path>     Write generated function files as a zip to this path (default: functions.zip)",
+    "  --funcs-out-dir <path> Write generated function files directly into this directory instead of a zip",
+    "  -h, --help             Show this message"
   ].join( "\n" ) );
 }
 
@@ -32,7 +34,8 @@ function parseArgs( argv ) {
       projectFile: null,
       entryFile: null,
       out: null,
-      funcsOut: null
+      funcsOut: null,
+      funcsOutDir: null
     },
     positional = [];
 
@@ -51,6 +54,9 @@ function parseArgs( argv ) {
       case "--funcs-out":
         args.funcsOut = argv[ ++i ];
         break;
+      case "--funcs-out-dir":
+        args.funcsOutDir = argv[ ++i ];
+        break;
       default:
         positional.push( arg );
     }
@@ -67,6 +73,10 @@ var args = parseArgs( process.argv.slice( 2 ) );
 if ( ! args.projectFile || ! args.entryFile ) {
   usage();
   process.exit( 1 );
+}
+
+if ( args.funcsOut && args.funcsOutDir ) {
+  fail( "Cannot use both --funcs-out and --funcs-out-dir" );
 }
 
 var projectRaw;
@@ -111,12 +121,37 @@ if ( args.out ) {
   process.stdout.write( result.command + "\n" );
 }
 
-if ( result.zip ) {
-  var funcsOut = args.funcsOut || "functions.zip";
-  result.zip.generateAsync( { type: "nodebuffer" } ).then( function( buffer ) {
-    fs.writeFileSync( funcsOut, buffer );
-    console.error( "Wrote " + funcsOut );
-  }, function( err ) {
-    fail( "Failed to generate " + funcsOut + ": " + err.message );
+async function writeZipToDir( zip, dir ) {
+  var entries = Object.keys( zip.files ).map( function( relPath ) {
+    return zip.files[ relPath ];
   } );
+
+  for ( var i = 0 ; i < entries.length ; i++ ) {
+    var entry = entries[i];
+    var target = path.join( dir, entry.name );
+    if ( entry.dir ) {
+      fs.mkdirSync( target, { recursive: true } );
+      continue;
+    }
+    fs.mkdirSync( path.dirname( target ), { recursive: true } );
+    fs.writeFileSync( target, await entry.async( "nodebuffer" ) );
+  }
+}
+
+if ( result.zip ) {
+  if ( args.funcsOutDir ) {
+    writeZipToDir( result.zip, args.funcsOutDir ).then( function() {
+      console.error( "Wrote functions to " + args.funcsOutDir );
+    }, function( err ) {
+      fail( "Failed to write functions to " + args.funcsOutDir + ": " + err.message );
+    } );
+  } else {
+    var funcsOut = args.funcsOut || "functions.zip";
+    result.zip.generateAsync( { type: "nodebuffer" } ).then( function( buffer ) {
+      fs.writeFileSync( funcsOut, buffer );
+      console.error( "Wrote " + funcsOut );
+    }, function( err ) {
+      fail( "Failed to generate " + funcsOut + ": " + err.message );
+    } );
+  }
 }
