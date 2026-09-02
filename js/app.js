@@ -48,9 +48,17 @@ define( [ "ui", "compiler", "filesaver", "jsyaml" ], function( UI, Compiler, fil
     ui.events.on( "toolbar.file-compile", function() {
       compiler.setFiles( ui.getFiles() );
       try {
-        var command = compiler.compile( ui.selectedFile, app.options );
-        ui.setOutput( command );
+        var result = compiler.compile( ui.selectedFile, app.options );
+        ui.setOutput( result.command );
         ui.selectOutput();
+        if ( result.zip ) {
+          result.zip.generateAsync( { type: "blob" } ).then( function( content ) {
+            saveAs( content, "functions.zip" );
+          }, function( err ) {
+            alert( "Error generating zip!" );
+            console.error( err );
+          } );
+        }
       } catch( exception ) {
         if( exception.name === "CSError" ) {
           ui.setOutput( exception.toString() );

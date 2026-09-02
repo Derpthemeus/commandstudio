@@ -1,0 +1,17 @@
+{
+  "name": "commandstudio",
+  "version": "0.2.4",
+  "description": "CommandStudio compiler CLI",
+  "main": "js/compiler.js",
+  "bin": {
+    "commandstudio-compile": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "echo \"no tests\" && exit 0"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "jszip": "^3.10.1"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

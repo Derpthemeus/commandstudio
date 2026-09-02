@@ -1,16 +1,32 @@
-define( [
-  "compiler/parser",
-  "compiler/context",
-  "compiler/scope",
-  "compiler/output",
-  "compiler/chain",
-  "compiler/func",
-  "compiler/native",
-  "compiler/cserror",
-  "utils/commandtools",
-  "jszip",
-  "filesaver"
-], function(
+( function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+    define( [
+      "compiler/parser",
+      "compiler/context",
+      "compiler/scope",
+      "compiler/output",
+      "compiler/chain",
+      "compiler/func",
+      "compiler/native",
+      "compiler/cserror",
+      "utils/commandtools",
+      "jszip"
+    ], factory );
+  } else if ( typeof module === "object" && module.exports ) {
+    module.exports = factory(
+      require( "./compiler/parser" ),
+      require( "./compiler/context" ),
+      require( "./compiler/scope" ),
+      require( "./compiler/output" ),
+      require( "./compiler/chain" ),
+      require( "./compiler/func" ),
+      require( "./compiler/native" ),
+      require( "./compiler/cserror" ),
+      require( "./utils/commandtools" ),
+      require( "jszip" )
+    );
+  }
+} )( function(
   Parser,
   Context,
   Scope,
@@ -20,8 +36,7 @@ define( [
   Native,
   CSError,
   CT,
-  jszip,
-  filesaver
+  jszip
 ) {
 
   var numRe = /^(?:~?[\+-]?(?:\.\d+|\d+\.?\d*)|~)$/,
@@ -41,6 +56,8 @@ define( [
     this.files = files;
   };
 
+  // Returns { command: <string>, zip: <JSZip instance or null> }.
+  // Callers are responsible for persisting the result (browser: saveAs, CLI: fs).
   Compiler.prototype.compile = function( fileName, options ) {
     this.options = options;
 
@@ -58,13 +75,13 @@ define( [
 
     this.parseFile( fileName, context );
 
-    var compiledCommand = this.compileCommands( commandSet.values );
+    var result = this.compileCommands( commandSet.values );
 
-    if( compiledCommand > 32500 ) {
-      throw new CSError( "TOO_LONG", null, compiledCommand.length );
+    if( result.command > 32500 ) {
+      throw new CSError( "TOO_LONG", null, result.command.length );
     }
 
-    return compiledCommand;
+    return result;
   };
 
   Compiler.prototype.compareIndentation = function( parser, context ) {
@@ -939,6 +956,9 @@ define( [
     return output;
   };
 
+  // Returns { command: <string>, zip: <JSZip instance or null> }.
+  // Building the zip's output buffer/blob and writing it out is left to the caller,
+  // since that step is platform-specific (browser Blob+saveAs vs Node fs.writeFile).
   Compiler.prototype.compileCommands = function( input ) {
     var entityNames = CT.entityNames[ this.options.useOldEntityNames === false ? "current" : "old" ],
       commands = [],
@@ -962,23 +982,21 @@ define( [
       throw new CSError( "NO_COMMAND" );
     }
 
+    var zip = null;
     if ( funcs.size > 0 ) {
-      var zip = new jszip();
+      zip = new jszip();
       funcs.forEach((commands, path) => {
         zip.file(path + ".mcfunction", commands.join("\n"));
       });
-      zip.generateAsync({type:"blob"})
-          .then(function(content) {
-            saveAs(content, "functions.zip");
-          }, function(err) {
-            alert("Error generating zip!");
-            console.error(err);
-          });
     }
 
+    var command;
+
     if( this.options.outputMcfunction ) {
-      return commands.join("\n")
+      command = commands.join("\n");
+      return { command: command, zip: zip };
     }
+
     if( this.options.resetCommandBlock === true ) {
       commands.push( "blockdata ~ ~-3 ~ {Command:\"\",auto:0}" );
     }
@@ -1010,9 +1028,9 @@ define( [
       } ]
     };
 
-    var summonCommand = "summon " + entityNames["falling_block"] + " ~ ~.6 ~ " + CT.serialize( root );
+    command = "summon " + entityNames["falling_block"] + " ~ ~.6 ~ " + CT.serialize( root );
 
-    return summonCommand;
+    return { command: command, zip: zip };
   };
 
   return Compiler;

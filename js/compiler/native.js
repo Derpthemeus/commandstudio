@@ -1,8 +1,10 @@
-define( [
-  "utils/commandtools"
-], function(
-  CT
-) {
+( function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+    define( [ "utils/commandtools" ], factory );
+  } else if ( typeof module === "object" && module.exports ) {
+    module.exports = factory( require( "../utils/commandtools" ) );
+  }
+} )( function( CT ) {
   var Native = {};
 
   function roundNum( num, precision ) {

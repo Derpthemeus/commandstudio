@@ -1,10 +1,10 @@
-define( [
-  "compiler/commandblock",
-  "utils/commandtools"
-], function(
-  CommandBlock,
-  CT
-) {
+( function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+    define( [ "compiler/commandblock", "utils/commandtools" ], factory );
+  } else if ( typeof module === "object" && module.exports ) {
+    module.exports = factory( require( "./commandblock" ), require( "../utils/commandtools" ) );
+  }
+} )( function( CommandBlock, CT ) {
 
   function Chain( position, direction ) {
     this.commandBlocks = [];

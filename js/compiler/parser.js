@@ -1,8 +1,10 @@
-define( [
-  "compiler/cserror"
-], function(
-  CSError
-) {
+( function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+    define( [ "compiler/cserror" ], factory );
+  } else if ( typeof module === "object" && module.exports ) {
+    module.exports = factory( require( "./cserror" ) );
+  }
+} )( function( CSError ) {
 
   var symbols = [
     { name: "eol", pattern: /\n/ },
