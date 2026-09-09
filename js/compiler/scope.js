@@ -48,6 +48,11 @@
       return this.getVar( varName ) !== null;
     },
 
+    getAllVars: function() {
+      var parentVars = this.parent !== null ? this.parent.getAllVars() : {};
+      return Object.assign( parentVars, this.vars );
+    },
+
     setDef: function( defName, def ) {
       this.defs[ defName ] = def;
     },

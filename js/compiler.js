@@ -371,6 +371,30 @@
     return func;
   };
 
+  Compiler.prototype.parseEval = function( parser, context ) {
+    var evalToken = parser.eat( "eval" );
+    parser.skip( "eol" );
+
+    var vars = context.get( "scope" ).getAllVars(),
+      result;
+
+    try {
+      result = new Function( "vars", evalToken.value )( vars );
+    }
+    catch( exception ) {
+      throw new CSError( "EVAL_ERROR", evalToken, exception.message );
+    }
+
+    if( typeof result !== "string" ) {
+      throw new CSError( "EVAL_ERROR", evalToken, "eval block must return a string" );
+    }
+
+    var evalContext = context.push();
+    evalContext.set( "indentation", "" );
+
+    this.parseSection( new Parser( result ), evalContext );
+  };
+
   Compiler.prototype.parseInclude = function( parser, context ) {
     var includeToken = parser.current,
       fileName;
@@ -842,6 +866,11 @@
 
         if( token.type === "keyword" && token.value === "include" ) {
           this.parseInclude( parser, context );
+          continue;
+        }
+
+        if( token.type === "eval" ) {
+          this.parseEval( parser, context );
           continue;
         }
       }

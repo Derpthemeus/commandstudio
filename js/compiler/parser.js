@@ -12,6 +12,7 @@
 
     { name: "comment", pattern: /\/\// },
     { name: "comment_start", pattern: /\/\*/},
+    { name: "eval_start", pattern: /eval:[ \t]*\n/ },
 
     { name: ".", pattern: /\./ },
     { name: ",", pattern: /,/ },
@@ -82,6 +83,36 @@
           if(code.match( /\*\// ) == null) throw new CSError( "BAD_COMMENT", "",currentLine );
           nextTokenPosition = code.match( /\*\// ).index+2;
           currentLine += code.match(/[\s\S]*\*\//)[0].split(/\r\n|\r|\n/).length-1;
+        }
+        else if( nextToken.type === "eval_start" ) {
+          var headerLength = nextToken.value.length,
+            headerIndent = ( tokens.length > 0 && tokens[ tokens.length - 1 ].type === "spaces" ) ? tokens[ tokens.length - 1 ].value : "",
+            rest = code.substr( nextTokenPosition + headerLength ),
+            lines = rest.split( "\n" ),
+            bodyLines = [],
+            consumed = 0;
+
+          while( consumed < lines.length ) {
+            var line = lines[ consumed ];
+            if( line.trim() !== "" ) {
+              var lineIndent = line.match( /^[ \t]*/ )[0];
+              if( lineIndent.length <= headerIndent.length || lineIndent.substr( 0, headerIndent.length ) !== headerIndent ) break;
+            }
+            bodyLines.push( line.trim() === "" ? "" : line.substr( headerIndent.length ) );
+            consumed++;
+          }
+
+          while( bodyLines.length > 0 && bodyLines[ bodyLines.length - 1 ] === "" ) bodyLines.pop();
+
+          nextToken.type = "eval";
+          nextToken.value = bodyLines.join( "\n" );
+
+          var remainder = lines.slice( consumed ).join( "\n" );
+          nextTokenPosition += headerLength + ( rest.length - remainder.length );
+
+          tokens.push( nextToken );
+          tokens.push( { type: "eol", value: null, line: currentLine + consumed } );
+          currentLine += 1 + consumed;
         }
         else {
           tokens.push( nextToken );
